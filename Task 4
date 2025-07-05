@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+# IMPORTING REQUIRED LIBRARIES
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+
+
+# In[2]:
+
+
+# SAMPLE DATA WITH ITEM FEATURES (Movie Descriptions)
+item_data = {
+    'Movie1': 'Action adventure film',
+    'Movie2': 'Romantic drama movie',
+    'Movie3': 'Sci-fi thriller',
+    'Movie4': 'Comedy film',
+    'Movie5': 'Mystery crime movie'
+}
+
+
+# In[3]:
+
+
+# CREATING A DATAFRAME
+item_df = pd.DataFrame(list(item_data.items()), columns=['Movie', 'Description'])
+item_df.set_index('Movie', inplace=True)
+
+
+# In[4]:
+
+
+# TF-IDF Vectorizer TO CONVERT MOVIE DESCRIPTIONS INTO NUMERICAL FEATURES
+tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf_vectorizer.fit_transform(item_df['Description'])
+
+
+# In[5]:
+
+
+# CALCULATE COSINE SIMILARIT BETWEEN MOVIES
+movie_similarity = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+
+# In[6]:
+
+
+# FUNCTION TO GET RECOMMENDATIONS FOR A MOVIE BY USING COLLABORATIVE FILTERING
+def get_content_based_recommendations(movie):
+    movie_index = item_df.index.get_loc(movie)
+    sim_scores = list(enumerate(movie_similarity[movie_index]))
+
+    # SORT MOVIES BASED ON SIMILARITY SCORES
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    # GET TOP N SIMILAR MOVIES
+    top_movies = sim_scores[1:3]
+
+    return [item_df.index[item[0]] for item in top_movies]
+
+
+# In[7]:
+
+
+# EXAMPLE USAGE
+movie_to_recommend_for = 'Movie5'
+content_based_recommendations = get_content_based_recommendations(movie_to_recommend_for)
+print(f"Recommended movies based on content for {movie_to_recommend_for}: {content_based_recommendations}")
+
+
+# In[ ]:
